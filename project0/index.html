@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Google Search</title>
+        <style>
+
+            #google {
+                font-size: 4em;
+                font-family: Arial;
+                font-weight: 600;
+                display: flex;
+                text-align: center;
+                justify-content: center;
+                margin-top: 5cm;
+            }
+
+            /* Now we assign different colors to each letter */
+            #g { color: #4285f4; } 
+            #o1 { color: #ea4335; } 
+            #o2 { color: #fbbc05; } 
+            #g2 { color: #34a853; }
+            #l { color: #4285f4; }
+            #e { color: #ea4335; }
+   
+            form {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                margin-top: 20px;
+            }
+           
+            input[type="text"] {
+                padding: 10px 20px;
+                font-size: 1em;
+                width: 400px;
+                border: 1px solid #dfe1e5;
+                border-radius: 25px;
+                outline: none;
+                box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+            }
+
+            #search-button {
+                padding: 10px 20px;
+                font-size: 1em;
+                color: #fff;
+                background-color: #4285f4;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+            }
+
+            #search-button:hover {
+                background-color: #357ae8;
+            }
+            
+            #lucky-button {
+                padding: 10px 20px;
+                font-size: 1em;
+                background-color: #f8c20e;
+                color: #000;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+            }
+
+            #lucky-button:hover {
+                background-color: #e6b81e;
+            }
+
+            .buttons {
+                display: flex;
+                gap: 10px; /* Space between buttons */
+            }
+
+            .links {
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                padding: 10px;
+            }
+
+            .links a {
+                margin: 4px 0;
+                color: #4285f4;
+                transition: color 0.3s;
+                text-decoration: none;
+            }
+
+            .links a:hover {
+                color: #1b4891;
+            }
+
+        </style>
+    </head>
+    <body>
+
+        <div id="google">
+            <span id="g">G</span>
+            <span id="o1">o</span>
+            <span id="o2">o</span>
+            <span id="g2">g</span>
+            <span id="l">l</span>
+            <span id="e">e</span>
+        </div>
+
+        <form action="https://www.google.com/search" target="_self">
+            <input type="text" name="q" placeholder="Search...">
+            <div class="buttons">
+                <input id="search-button" type="submit" value="Google Search">
+                <input id="lucky-button" type="submit" name="btnI" value="I'm Feeling Lucky">
+            </div>
+        </form>
+
+        <div class="links">
+            <a href="image.html" target="_self">Google Image</a>
+            <a href="advanced.html" target="_self">Google Advanced</a>
+        </div>
+
+    </body>
+</html>
