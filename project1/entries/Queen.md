@@ -1,0 +1,1 @@
+Queen are a British rock band formed in London in 1970 by **Freddie Mercury** (lead vocals, piano), **Brian May** (guitar, vocals), and **Roger Taylor** (drums, vocals), later joined by **John Deacon** (bass).
