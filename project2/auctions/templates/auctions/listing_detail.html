@@ -1,0 +1,58 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>{{ listing.title }}</h2>
+    <p>{{ listing.description }}</p>
+    <p><strong>Starting bid:</strong> ${{ listing.starting_bid }}</p>
+    <p><strong>Current bid:</strong> ${{ highest_bid }}</p>
+    
+    {% if user.is_authenticated %}
+        <!-- Close Auction Button (if user is the creator) -->
+        {% if listing.owner == user %}
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" name="close_auction" class="btn btn-danger">Close Auction</button>
+            </form>
+        {% endif %}
+            
+        <div style="height: 10px;"></div>
+        
+        <!-- Watchlist Button -->
+        <form method="POST" action="{% url 'toggle_watchlist' listing.id %}">
+            {% csrf_token %}
+            {% if watchlisted %}
+                <button type="submit" name="watchlist" class="btn btn-primary">Remove from Watchlist</button>
+                <span class="badge badge-success">Watchlist</span>  <!-- Watchlist tag -->
+            {% else %}
+                <button type="submit" name="watchlist" class="btn btn-primary">Add to Watchlist</button>
+            {% endif %}
+        </form>
+
+        <div style="height: 30px;"></div>
+
+        <!-- Bid Placement -->
+        <form method="POST">
+            {% csrf_token %}
+            <label for="bid_amount">Your bid:</label>
+            <input type="number" name="bid_amount" min="{{ highest_bid|add:0.01 }}" step="0.01" required>
+            <button type="submit" name="bid">Place bid</button>
+        </form>
+    {% else %}
+        <p>Please <a href="{% url 'login' %}">login</a> to place a bid or add to your watchlist.</p>
+    {% endif %}
+
+    <div style="height: 40px;"></div>
+
+    <h6>Comments</h6>
+    <form method="POST">
+        {% csrf_token %}
+        <textarea name="comment" placeholder="Add your comment here" required></textarea>
+        <button type="submit">Post Comment</button>
+    </form>
+
+    <ul>
+        {% for comment in comments %}
+            <li><strong>{{ comment.commenter.username }}:</strong> {{ comment.content }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
