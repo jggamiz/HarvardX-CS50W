@@ -1,0 +1,34 @@
+textarea {
+    min-height: 400px;
+}
+
+.email-box {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 5px 0;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+}
+
+.read {
+    background-color: #f0f0f0; /* Light gray for read emails */
+    border: 1px solid #ddd; /* Optional: Add a border */
+    padding: 10px;
+}
+  
+.unread {
+    background-color: #ffffff; /* White for unread emails */
+    border: 1px solid #ddd; /* Optional: Add a border */
+    padding: 10px;
+}
+
+.email-box:hover {
+    cursor: pointer;
+    background-color: #e9ecef; /* Slightly darker gray for hover effect */
+}  
+
+.timestamp {
+    font-size: 0.8em;
+    color: gray;
+}
