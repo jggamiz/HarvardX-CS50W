@@ -1,0 +1,77 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    <h4>Following</h4>
+    {% for post in posts %}
+        <div class="post">
+            <a href="{% url 'profile' post.user.username %}"><strong>{{ post.user.username }}</strong></a>
+            <small class="text-muted">{{ post.timestamp }}</small>
+            <p class="post-content">{% autoescape off %}{{ post.content|safe }}{% endautoescape %}</p>
+            
+            <button class="btn btn-link like-button {% if user in post.likes.all %}liked{% endif %}" data-post-id="{{ post.id }}">
+                ♥
+            </button>
+            <span class="like-count">{{ post.like_count }}</span></p>
+
+        </div>
+    {% empty %}
+        <p>You are not following anyone or there are no posts to display.</p>
+    {% endfor %}
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".like-button").forEach(button => {
+            button.addEventListener("click", () => {
+                const postId = button.dataset.postId;
+                
+                // Send the like/unlike request to the server
+                fetch(`/like_post/${postId}/`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        const likeButton = button;
+                        const likeCountElement = button.closest('.post').querySelector('.like-count');
+
+                        // Toggle the liked class to change the heart color
+                        likeButton.classList.toggle('liked', data.is_liked);
+
+                        // Update the like count text
+                        likeCountElement.textContent = data.like_count;
+                        likeButton.textContent = "♥";
+                    }
+                });
+            });
+        });
+    });
+    </script>
+
+    <!-- Pagination -->
+    <nav>
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">{{ page_obj.number }}</span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+
+{% endblock %}

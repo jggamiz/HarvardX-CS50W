@@ -1,0 +1,156 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    {% if user.is_authenticated %}
+        <h4>New Post</h4>
+        <form action="{% url 'new_post' %}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <textarea class="form-control" name="content" placeholder="Share yout current vibe..." rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Post</button>
+        </form>
+        <hr>
+    {% endif %}
+
+    <h2>All Posts</h2>
+    {% for post in page_obj %}
+        <div class="post" id="post-{{ post.id }}">
+            <a href="{% url 'profile' post.user.username %}"><strong>{{ post.user.username }}</strong></a>
+            <small class="text-muted">{{ post.timestamp }}</small>
+            <p class="post-content">{% autoescape off %}{{ post.content|safe }}{% endautoescape %}</p>
+            
+            <button class="btn btn-link like-button {% if user in post.likes.all %}liked{% endif %}" data-post-id="{{ post.id }}">
+                ♥
+            </button>
+            <span class="like-count">{{ post.like_count }}</span></p>
+
+            {% if user == post.user %}
+                <button class="btn btn-link edit-button" data-post-id="{{ post.id }}">Edit</button>
+            {% endif %}
+        </div>
+        <hr>
+    {% endfor %}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll(".edit-button").forEach(button => {
+                button.addEventListener("click", () => {
+                    const postId = button.dataset.postId;
+                    const postDiv = document.querySelector(`#post-${postId}`);
+                    const contentParagraph = postDiv.querySelector(".post-content");
+    
+                    // Hide the edit button
+                    button.style.display = "none";
+    
+                    // Create a textarea pre-filled with the current content
+                    const textarea = document.createElement("textarea");
+                    textarea.value = contentParagraph.textContent.trim();
+                    textarea.className = "form-control";
+    
+                    // Create a save button
+                    const saveButton = document.createElement("button");
+                    saveButton.textContent = "Save";
+                    saveButton.className = "btn btn-primary mt-2";
+    
+                    // Replace content with the textarea and add the save button
+                    contentParagraph.style.display = "none";
+                    postDiv.appendChild(textarea);
+                    postDiv.appendChild(saveButton);
+    
+                    // Handle save button click
+                    saveButton.addEventListener("click", () => {
+                        const updatedContent = textarea.value;
+    
+                        // Send updated content to the server via fetch
+                        fetch(`/edit_post/${postId}/`, {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": "{{ csrf_token }}"
+                            },
+                            body: JSON.stringify({ content: updatedContent })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.error) {
+                                    alert(data.error);
+                                    button.style.display = "block"; // Show the edit button again on error
+                                } else {
+                                    // Update the post content and remove the textarea and button
+                                    contentParagraph.textContent = updatedContent;
+                                    contentParagraph.style.display = "block";
+                                    textarea.remove();
+                                    saveButton.remove();
+    
+                                    // Show the edit button again
+                                    button.style.display = "inline-block";
+                                }
+                            })
+                            .catch(() => {
+                                alert("An error occurred while updating the post.");
+                                button.style.display = "block"; // Show the edit button on fetch failure
+                            });
+                    });
+                });
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll(".like-button").forEach(button => {
+                button.addEventListener("click", () => {
+                    const postId = button.dataset.postId;
+                    
+                    // Send the like/unlike request to the server
+                    fetch(`/like_post/${postId}/`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert(data.error);
+                        } else {
+                            const likeButton = button;
+                            const likeCountElement = button.closest('.post').querySelector('.like-count');
+
+                            // Toggle the liked class to change the heart color
+                            likeButton.classList.toggle('liked', data.is_liked);
+
+                            // Update the like count text
+                            likeCountElement.textContent = data.like_count;
+                            likeButton.textContent = "♥";
+                        }
+                    });
+                });
+            });
+        });
+
+    </script>    
+
+
+    <!-- Pagination -->
+    <nav>
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">{{ page_obj.number }}</span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+
+{% endblock %}

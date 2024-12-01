@@ -1,0 +1,146 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    <h2>{{ profile_user.username }}</h2>
+    <div class="profile-info">
+        <div class="profile-stat">
+            <p><strong>Followers:</strong> <span id="follower-count">{{ profile_user.follower_count }}</span></p>
+        </div>
+        <div class="profile-stat">
+            <p><strong>Following:</strong> {{ profile_user.following_count }}</p>
+        </div>
+    </div>
+    
+
+    {% if user.is_authenticated and user != profile_user %}
+        <button id="follow-toggle" class="btn btn-primary">
+            {% if is_following %}
+                Unfollow
+            {% else %}
+                Follow
+            {% endif %}
+        </button>
+    {% endif %}
+
+    <hr>
+    <h4>Posts</h4>
+    {% for post in posts %}
+        <div class="post">
+            <small class="text-muted">{{ post.timestamp }}</small>
+            <!-- Render content with raw HTML -->
+            <p class="post-content">{% autoescape off %}{{ post.content|safe }}{% endautoescape %}</p>
+            {% if user == post.user %}
+                <button class="btn btn-link edit-button" data-post-id="{{ post.id }}">Edit</button>
+            {% endif %}
+            <hr>
+        </div>
+    {% endfor %}
+
+    <!-- Pagination -->
+    <nav>
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">{{ page_obj.number }}</span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+
+
+    <script>
+        document.querySelector("#follow-toggle").addEventListener("click", () => {
+            fetch("{% url 'toggle_follow' profile_user.username %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    // Toggle the follow/unfollow button text
+                    document.querySelector("#follow-toggle").textContent = data.is_following ? "Unfollow" : "Follow";
+
+                    // Update the follower count
+                    document.querySelector("#follower-count").textContent = data.follower_count;
+                }
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll(".edit-button").forEach(button => {
+                button.addEventListener("click", () => {
+                    const postId = button.dataset.postId;
+                    const postDiv = document.querySelector(`#post-${postId}`);
+                    const contentParagraph = postDiv.querySelector(".post-content");
+    
+                    // Hide the edit button
+                    button.style.display = "none";
+    
+                    // Create a textarea pre-filled with the current content
+                    const textarea = document.createElement("textarea");
+                    textarea.value = contentParagraph.textContent.trim();
+                    textarea.className = "form-control";
+    
+                    // Create a save button
+                    const saveButton = document.createElement("button");
+                    saveButton.textContent = "Save";
+                    saveButton.className = "btn btn-primary mt-2";
+    
+                    // Replace content with the textarea and add the save button
+                    contentParagraph.style.display = "none";
+                    postDiv.appendChild(textarea);
+                    postDiv.appendChild(saveButton);
+    
+                    // Handle save button click
+                    saveButton.addEventListener("click", () => {
+                        const updatedContent = textarea.value;
+    
+                        // Send updated content to the server via fetch
+                        fetch(`/edit_post/${postId}/`, {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": "{{ csrf_token }}"
+                            },
+                            body: JSON.stringify({ content: updatedContent })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.error) {
+                                    alert(data.error);
+                                    button.style.display = "block"; // Show the edit button again on error
+                                } else {
+                                    // Update the post content and remove the textarea and button
+                                    contentParagraph.textContent = updatedContent;
+                                    contentParagraph.style.display = "block";
+                                    textarea.remove();
+                                    saveButton.remove();
+    
+                                    // Show the edit button again
+                                    button.style.display = "inline-block";
+                                }
+                            })
+                            .catch(() => {
+                                alert("An error occurred while updating the post.");
+                                button.style.display = "block"; // Show the edit button on fetch failure
+                            });
+                    });
+                });
+            });
+        });
+    </script>
+{% endblock %}
